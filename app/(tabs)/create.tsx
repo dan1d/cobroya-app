@@ -51,7 +51,7 @@ export default function CreatePaymentScreen() {
       });
 
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setPaymentUrl(result.init_point);
+      setPaymentUrl(result.checkout_url);
       setShowQR(true);
     } catch {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);

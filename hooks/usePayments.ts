@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getClient } from "../lib/api";
+import { isTestToken } from "../lib/auth";
 import type { CreatePaymentInput, DashboardStats, Payment } from "../lib/types";
 import { format, subDays, startOfDay } from "date-fns";
 
@@ -28,7 +29,14 @@ export function usePayment(paymentId: string | null) {
 export function useCreatePayment() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: CreatePaymentInput) => getClient().createPaymentPreference(input),
+    mutationFn: async (input: CreatePaymentInput) => {
+      const pref = await getClient().createPaymentPreference(input);
+      const isSandbox = await isTestToken();
+      return {
+        ...pref,
+        checkout_url: isSandbox ? pref.sandbox_init_point : pref.init_point,
+      };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payments"] });
     },

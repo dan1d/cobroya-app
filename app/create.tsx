@@ -38,7 +38,7 @@ export default function CreateModalScreen() {
         currency,
       });
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setPaymentUrl(result.init_point);
+      setPaymentUrl(result.checkout_url);
       setShowQR(true);
     } catch {
       setError("Error al crear el pago");

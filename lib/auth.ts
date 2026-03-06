@@ -35,3 +35,8 @@ export async function initializeAuth(): Promise<boolean> {
   }
   return false;
 }
+
+export async function isTestToken(): Promise<boolean> {
+  const token = await getStoredToken();
+  return token?.startsWith("TEST-") ?? false;
+}

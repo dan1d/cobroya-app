@@ -62,7 +62,7 @@ export default function POSScreen() {
         quantity: 1,
         currency,
       });
-      setPaymentUrl(result.init_point);
+      setPaymentUrl(result.checkout_url);
       setShowQR(true);
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch {
