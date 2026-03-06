@@ -54,10 +54,16 @@ export default function ProfileScreen() {
           </View>
 
           <Button
+            title="Mi equipo"
+            onPress={() => router.push("/team")}
+            style={{ marginTop: spacing.lg }}
+          />
+
+          <Button
             title="Configuracion"
             onPress={() => router.push("/settings")}
             variant="secondary"
-            style={{ marginTop: spacing.lg }}
+            style={{ marginTop: spacing.sm }}
           />
         </>
       )}

@@ -38,17 +38,25 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="pos"
+        options={{
+          title: "Cobrar",
+          tabBarIcon: ({ focused }) => <TabIcon icon="💲" focused={focused} />,
+          headerTitle: "Cobro rapido",
+        }}
+      />
+      <Tabs.Screen
+        name="templates"
+        options={{
+          title: "Plantillas",
+          tabBarIcon: ({ focused }) => <TabIcon icon="📋" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
         name="payments"
         options={{
           title: "Pagos",
           tabBarIcon: ({ focused }) => <TabIcon icon="💰" focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
-        name="create"
-        options={{
-          title: "Cobrar",
-          tabBarIcon: ({ focused }) => <TabIcon icon="➕" focused={focused} />,
         }}
       />
       <Tabs.Screen
@@ -58,6 +66,8 @@ export default function TabsLayout() {
           tabBarIcon: ({ focused }) => <TabIcon icon="👤" focused={focused} />,
         }}
       />
+      {/* Hide the old create tab */}
+      <Tabs.Screen name="create" options={{ href: null }} />
     </Tabs>
   );
 }

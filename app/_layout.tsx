@@ -38,7 +38,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (!isReady) return;
 
-    const inAuthGroup = segments[0] === "login";
+    const inAuthGroup = segments[0] === "login" || segments[0] === "join";
 
     if (!isLoggedIn && !inAuthGroup) {
       router.replace("/login");
@@ -81,6 +81,14 @@ export default function RootLayout() {
         <Stack.Screen
           name="settings"
           options={{ title: "Configuracion" }}
+        />
+        <Stack.Screen
+          name="team"
+          options={{ title: "Equipo" }}
+        />
+        <Stack.Screen
+          name="join"
+          options={{ title: "Unirse a equipo", headerShown: false }}
         />
       </Stack>
     </QueryClientProvider>

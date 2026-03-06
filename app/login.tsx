@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Pressable, Linking } from "react-native";
 import { useRouter } from "expo-router";
+import Constants from "expo-constants";
 import { saveToken } from "../lib/auth";
 import { initClient, MercadoPagoError } from "../lib/api";
 import { Button } from "../components/Button";
@@ -8,11 +9,31 @@ import { Input } from "../components/Input";
 import { colors, spacing, radius } from "../constants/theme";
 import { registerForPushNotifications } from "../lib/notifications";
 
+const DEV_TOKEN = Constants.expoConfig?.extra?.mpAccessToken as string | undefined;
+
 export default function LoginScreen() {
   const router = useRouter();
   const [token, setToken] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Auto-login in dev if token is configured in app.json
+  useEffect(() => {
+    if (__DEV__ && DEV_TOKEN) {
+      setToken(DEV_TOKEN);
+      (async () => {
+        setLoading(true);
+        try {
+          const client = initClient(DEV_TOKEN);
+          await client.getMerchantInfo();
+          await saveToken(DEV_TOKEN);
+          router.replace("/(tabs)");
+        } catch {
+          setLoading(false);
+        }
+      })();
+    }
+  }, []);
 
   async function handleLogin() {
     const trimmed = token.trim();
@@ -91,6 +112,18 @@ export default function LoginScreen() {
           </Pressable>
         </View>
 
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>o</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        <Button
+          title="Unirme a un equipo"
+          onPress={() => router.push("/join")}
+          variant="secondary"
+        />
+
         <Text style={styles.disclaimer}>
           Tu token se guarda de forma segura en tu dispositivo y nunca se comparte con terceros.
         </Text>
@@ -143,10 +176,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
+  divider: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: spacing.lg,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.border,
+  },
+  dividerText: {
+    color: colors.textMuted,
+    marginHorizontal: spacing.md,
+    fontSize: 14,
+  },
   disclaimer: {
     color: colors.textMuted,
     fontSize: 12,
     textAlign: "center",
     lineHeight: 18,
+    marginTop: spacing.lg,
   },
 });
