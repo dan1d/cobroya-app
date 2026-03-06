@@ -59,7 +59,7 @@ export function QRModal({ visible, url, title, amount, onClose }: Props) {
 
           <View style={styles.qrContainer}>
             <View style={styles.qrBackground}>
-              <QRCode value={url} size={220} backgroundColor="#FFFFFF" color="#000000" />
+              <QRCode value={url || "https://cobroya.app"} size={220} backgroundColor="#FFFFFF" color="#000000" />
             </View>
           </View>
 
