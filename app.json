@@ -27,7 +27,9 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "permissions": ["VIBRATE"]
+      "permissions": [
+        "VIBRATE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -48,8 +50,11 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "cobroya-app"
-      }
-    }
+        "projectId": "4ebb2933-125b-4ef2-b785-0a76326f3b41"
+      },
+      "mpAccessToken": "",
+      "router": {}
+    },
+    "owner": "dan1dd"
   }
 }
