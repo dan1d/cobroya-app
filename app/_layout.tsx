@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Stack, useRouter, useSegments } from "expo-router";
+import { useEffect, useState, useCallback } from "react";
+import { Stack, useRouter, useRootNavigationState } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
@@ -18,14 +18,14 @@ const queryClient = new QueryClient({
 
 export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [initialRoute, setInitialRoute] = useState<"login" | "(tabs)">("login");
   const router = useRouter();
-  const segments = useSegments();
+  const navigationState = useRootNavigationState();
 
   useEffect(() => {
     async function init() {
       const hasToken = await initializeAuth();
-      setIsLoggedIn(hasToken);
+      setInitialRoute(hasToken ? "(tabs)" : "login");
       setIsReady(true);
 
       if (hasToken) {
@@ -35,17 +35,11 @@ export default function RootLayout() {
     init();
   }, []);
 
+  // Navigate once when ready and navigation is loaded
   useEffect(() => {
-    if (!isReady) return;
-
-    const inAuthGroup = segments[0] === "login" || segments[0] === "join";
-
-    if (!isLoggedIn && !inAuthGroup) {
-      router.replace("/login");
-    } else if (isLoggedIn && inAuthGroup) {
-      router.replace("/(tabs)");
-    }
-  }, [isReady, isLoggedIn, segments]);
+    if (!isReady || !navigationState?.key) return;
+    router.replace(initialRoute === "(tabs)" ? "/(tabs)" : "/login");
+  }, [isReady, navigationState?.key]);
 
   if (!isReady) {
     return (
