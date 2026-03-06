@@ -91,4 +91,28 @@ describe("auth", () => {
     expect(result).toBe(true);
     expect(initClient).toHaveBeenCalledWith("APP_USR-existing");
   });
+
+  it("isTestToken returns true for TEST- tokens", async () => {
+    const { saveToken, isTestToken } = require("../lib/auth");
+    await saveToken("TEST-1234-abcd");
+    expect(await isTestToken()).toBe(true);
+  });
+
+  it("isTestToken returns false for APP_USR- tokens", async () => {
+    const { saveToken, isTestToken } = require("../lib/auth");
+    await saveToken("APP_USR-1234-abcd");
+    expect(await isTestToken()).toBe(false);
+  });
+
+  it("isTestToken returns false when no token", async () => {
+    const { isTestToken } = require("../lib/auth");
+    expect(await isTestToken()).toBe(false);
+  });
+
+  it("getStoredCurrency returns saved currency", async () => {
+    const { saveCurrency, getStoredCurrency } = require("../lib/auth");
+    await saveCurrency("BRL");
+    const currency = await getStoredCurrency();
+    expect(currency).toBe("BRL");
+  });
 });

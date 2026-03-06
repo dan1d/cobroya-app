@@ -6,6 +6,10 @@ import { QRModal } from "../../components/QRModal";
 
 jest.spyOn(Share, "share").mockResolvedValue({ action: "sharedAction" } as any);
 
+afterEach(() => {
+  jest.useRealTimers();
+});
+
 describe("QRModal", () => {
   const defaultProps = {
     visible: true,
@@ -75,5 +79,28 @@ describe("QRModal", () => {
     // Should not crash with empty url
     render(<QRModal {...defaultProps} url="" />);
     expect(screen.getByText("Test Payment")).toBeTruthy();
+  });
+
+  it("opens WhatsApp with native scheme when available", async () => {
+    const Linking = require("expo-linking");
+    Linking.canOpenURL.mockResolvedValue(true);
+
+    render(<QRModal {...defaultProps} />);
+    await act(async () => {
+      fireEvent.press(screen.getByText("WhatsApp"));
+    });
+    expect(Linking.canOpenURL).toHaveBeenCalledWith(expect.stringContaining("whatsapp://"));
+    expect(Linking.openURL).toHaveBeenCalledWith(expect.stringContaining("whatsapp://"));
+  });
+
+  it("falls back to wa.me when WhatsApp not installed", async () => {
+    const Linking = require("expo-linking");
+    Linking.canOpenURL.mockResolvedValue(false);
+
+    render(<QRModal {...defaultProps} />);
+    await act(async () => {
+      fireEvent.press(screen.getByText("WhatsApp"));
+    });
+    expect(Linking.openURL).toHaveBeenCalledWith(expect.stringContaining("https://wa.me/"));
   });
 });
