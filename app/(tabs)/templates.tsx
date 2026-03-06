@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { View, Text, StyleSheet, FlatList, Pressable, Alert, Modal } from "react-native";
 import { useFocusEffect } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { getTemplates, saveTemplate, deleteTemplate, PaymentTemplate } from "../../lib/templates";
+import { getTemplates, saveTemplate, deleteTemplate, updateTemplate, PaymentTemplate } from "../../lib/templates";
 import { useCreatePayment } from "../../hooks/usePayments";
 import { getStoredCurrency } from "../../lib/auth";
 import { QRModal } from "../../components/QRModal";
@@ -16,6 +16,8 @@ const ICONS = ["🛒", "💇", "🧘", "🍕", "📚", "💻", "🎨", "🔧", "
 export default function TemplatesScreen() {
   const [templates, setTemplates] = useState<PaymentTemplate[]>([]);
   const [showCreate, setShowCreate] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<PaymentTemplate | null>(null);
   const [showQR, setShowQR] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState("");
   const [activeTemplate, setActiveTemplate] = useState<PaymentTemplate | null>(null);
@@ -79,11 +81,39 @@ export default function TemplatesScreen() {
         currency: template.currency,
         description: template.description,
       });
-      setPaymentUrl(result.init_point);
+      setPaymentUrl(result.checkout_url);
       setShowQR(true);
     } catch {
       Alert.alert("Error", "No se pudo generar el link de pago");
     }
+  }
+
+  function handleEdit(template: PaymentTemplate) {
+    setEditingTemplate(template);
+    setName(template.name);
+    setAmount(template.amount.toString());
+    setDescription(template.description || "");
+    setIcon(template.icon || "🛒");
+    setShowEdit(true);
+  }
+
+  async function handleSaveEdit() {
+    if (!editingTemplate || !name.trim()) return;
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount) || numAmount <= 0) return;
+
+    await updateTemplate(editingTemplate.id, {
+      name: name.trim(),
+      amount: numAmount,
+      description: description.trim() || undefined,
+      icon,
+    });
+
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setShowEdit(false);
+    setEditingTemplate(null);
+    resetForm();
+    loadTemplates();
   }
 
   function handleDelete(template: PaymentTemplate) {
@@ -115,7 +145,6 @@ export default function TemplatesScreen() {
           <Pressable
             style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
             onPress={() => handleUseTemplate(item)}
-            onLongPress={() => handleDelete(item)}
           >
             <Text style={styles.cardIcon}>{item.icon || "🛒"}</Text>
             <Text style={styles.cardName} numberOfLines={1}>{item.name}</Text>
@@ -125,6 +154,14 @@ export default function TemplatesScreen() {
             {item.description && (
               <Text style={styles.cardDesc} numberOfLines={1}>{item.description}</Text>
             )}
+            <View style={styles.cardActions}>
+              <Pressable style={styles.cardAction} onPress={() => handleEdit(item)}>
+                <Text style={styles.cardActionText}>Editar</Text>
+              </Pressable>
+              <Pressable style={styles.cardAction} onPress={() => handleDelete(item)}>
+                <Text style={[styles.cardActionText, { color: colors.danger }]}>Eliminar</Text>
+              </Pressable>
+            </View>
           </Pressable>
         )}
         ListEmptyComponent={
@@ -173,6 +210,35 @@ export default function TemplatesScreen() {
         </Pressable>
       </Modal>
 
+      {/* Edit modal */}
+      <Modal visible={showEdit} transparent animationType="slide" onRequestClose={() => { setShowEdit(false); setEditingTemplate(null); resetForm(); }}>
+        <Pressable style={styles.overlay} onPress={() => { setShowEdit(false); setEditingTemplate(null); resetForm(); }}>
+          <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.handle} />
+            <Text style={styles.sheetTitle}>Editar plantilla</Text>
+
+            <Input label="Nombre" placeholder='Ej: Corte de pelo' value={name} onChangeText={setName} />
+            <Input label={`Monto (${symbol})`} placeholder="3000" value={amount} onChangeText={setAmount} keyboardType="decimal-pad" />
+            <Input label="Descripcion (opcional)" placeholder="Detalles..." value={description} onChangeText={setDescription} />
+
+            <Text style={styles.iconLabel}>Icono</Text>
+            <View style={styles.iconGrid}>
+              {ICONS.map((i) => (
+                <Pressable
+                  key={i}
+                  style={[styles.iconBtn, icon === i && styles.iconBtnActive]}
+                  onPress={() => setIcon(i)}
+                >
+                  <Text style={styles.iconBtnText}>{i}</Text>
+                </Pressable>
+              ))}
+            </View>
+
+            <Button title="Guardar cambios" onPress={handleSaveEdit} style={{ marginTop: spacing.md }} />
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       {/* QR Modal */}
       <QRModal
         visible={showQR}
@@ -203,6 +269,9 @@ const styles = StyleSheet.create({
   cardName: { color: colors.text, fontSize: 15, fontWeight: "700", marginBottom: 4, textAlign: "center" },
   cardAmount: { color: colors.primary, fontSize: 18, fontWeight: "800" },
   cardDesc: { color: colors.textMuted, fontSize: 12, marginTop: 4, textAlign: "center" },
+  cardActions: { flexDirection: "row", gap: spacing.md, marginTop: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: spacing.sm, width: "100%" as any, justifyContent: "center" },
+  cardAction: { paddingVertical: 2, paddingHorizontal: spacing.sm },
+  cardActionText: { color: colors.textSecondary, fontSize: 12, fontWeight: "600" },
   fab: {
     position: "absolute",
     bottom: spacing.lg,

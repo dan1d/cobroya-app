@@ -100,11 +100,7 @@ export default function TeamScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Miembros ({members.length})</Text>
           {members.map((member) => (
-            <Pressable
-              key={member.id}
-              style={styles.memberCard}
-              onLongPress={() => handleRemoveMember(member)}
-            >
+            <View key={member.id} style={styles.memberCard}>
               <View style={styles.memberAvatar}>
                 <Text style={styles.memberAvatarText}>
                   {member.name[0]?.toUpperCase() || "?"}
@@ -114,7 +110,10 @@ export default function TeamScreen() {
                 <Text style={styles.memberName}>{member.name}</Text>
                 <Text style={styles.memberRole}>{ROLE_LABELS[member.role]}</Text>
               </View>
-            </Pressable>
+              <Pressable style={styles.memberRemove} onPress={() => handleRemoveMember(member)}>
+                <Text style={styles.memberRemoveText}>Eliminar</Text>
+              </Pressable>
+            </View>
           ))}
         </View>
       ) : (
@@ -252,6 +251,8 @@ const styles = StyleSheet.create({
   memberInfo: { flex: 1 },
   memberName: { color: colors.text, fontSize: 16, fontWeight: "600" },
   memberRole: { color: colors.textSecondary, fontSize: 13 },
+  memberRemove: { paddingVertical: 6, paddingHorizontal: spacing.sm },
+  memberRemoveText: { color: colors.danger, fontSize: 13, fontWeight: "600" },
   inviteForm: {
     marginTop: spacing.lg,
     backgroundColor: colors.surface,
