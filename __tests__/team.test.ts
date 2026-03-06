@@ -1,6 +1,13 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+// Mock storage and auth
+jest.mock("../lib/storage", () => {
+  const store: Record<string, string> = {};
+  return {
+    getItem: jest.fn(async (key: string) => store[key] ?? null),
+    setItem: jest.fn(async (key: string, value: string) => { store[key] = value; }),
+    deleteItem: jest.fn(async (key: string) => { delete store[key]; }),
+  };
+});
 
-// Mock auth module
 jest.mock("../lib/auth", () => ({
   getStoredToken: jest.fn().mockResolvedValue("APP_USR-test-token-12345"),
 }));
@@ -17,9 +24,16 @@ let ROLE_PERMISSIONS: any;
 
 beforeEach(() => {
   jest.resetModules();
-  AsyncStorage.clear();
 
-  // Re-mock after resetModules
+  jest.mock("../lib/storage", () => {
+    const store: Record<string, string> = {};
+    return {
+      getItem: jest.fn(async (key: string) => store[key] ?? null),
+      setItem: jest.fn(async (key: string, value: string) => { store[key] = value; }),
+      deleteItem: jest.fn(async (key: string) => { delete store[key]; }),
+    };
+  });
+
   jest.mock("../lib/auth", () => ({
     getStoredToken: jest.fn().mockResolvedValue("APP_USR-test-token-12345"),
   }));

@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getItem, setItem } from "./storage";
 import { getStoredToken } from "./auth";
 
 const TEAM_KEY = "cobroya_team";
@@ -26,7 +26,6 @@ function xorEncrypt(text: string, pin: string): string {
   for (let i = 0; i < text.length; i++) {
     result.push(text.charCodeAt(i) ^ pin.charCodeAt(i % pin.length));
   }
-  // Convert to base64-safe string
   return btoa(String.fromCharCode(...result));
 }
 
@@ -75,16 +74,16 @@ export function decryptToken(encryptedToken: string, pin: string): string {
 }
 
 export async function getRole(): Promise<TeamRole> {
-  const role = await AsyncStorage.getItem(ROLE_KEY);
+  const role = await getItem(ROLE_KEY);
   return (role as TeamRole) || "owner";
 }
 
 export async function setRole(role: TeamRole): Promise<void> {
-  await AsyncStorage.setItem(ROLE_KEY, role);
+  await setItem(ROLE_KEY, role);
 }
 
 export async function getTeamMembers(): Promise<TeamMember[]> {
-  const raw = await AsyncStorage.getItem(TEAM_KEY);
+  const raw = await getItem(TEAM_KEY);
   if (!raw) return [];
   try {
     return JSON.parse(raw);
@@ -102,14 +101,14 @@ export async function addTeamMember(name: string, role: TeamRole): Promise<TeamM
     addedAt: new Date().toISOString(),
   };
   members.push(member);
-  await AsyncStorage.setItem(TEAM_KEY, JSON.stringify(members));
+  await setItem(TEAM_KEY, JSON.stringify(members));
   return member;
 }
 
 export async function removeTeamMember(id: string): Promise<void> {
   const members = await getTeamMembers();
   const filtered = members.filter((m) => m.id !== id);
-  await AsyncStorage.setItem(TEAM_KEY, JSON.stringify(filtered));
+  await setItem(TEAM_KEY, JSON.stringify(filtered));
 }
 
 export const ROLE_PERMISSIONS: Record<TeamRole, { canCharge: boolean; canViewPayments: boolean; canRefund: boolean; canManageTeam: boolean; canViewDashboard: boolean }> = {

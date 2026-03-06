@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getItem, setItem } from "./storage";
 
 const TEMPLATES_KEY = "cobroya_templates";
 
@@ -13,7 +13,7 @@ export interface PaymentTemplate {
 }
 
 export async function getTemplates(): Promise<PaymentTemplate[]> {
-  const raw = await AsyncStorage.getItem(TEMPLATES_KEY);
+  const raw = await getItem(TEMPLATES_KEY);
   if (!raw) return [];
   try {
     return JSON.parse(raw);
@@ -30,14 +30,14 @@ export async function saveTemplate(template: Omit<PaymentTemplate, "id" | "creat
     createdAt: new Date().toISOString(),
   };
   templates.push(newTemplate);
-  await AsyncStorage.setItem(TEMPLATES_KEY, JSON.stringify(templates));
+  await setItem(TEMPLATES_KEY, JSON.stringify(templates));
   return newTemplate;
 }
 
 export async function deleteTemplate(id: string): Promise<void> {
   const templates = await getTemplates();
   const filtered = templates.filter((t) => t.id !== id);
-  await AsyncStorage.setItem(TEMPLATES_KEY, JSON.stringify(filtered));
+  await setItem(TEMPLATES_KEY, JSON.stringify(filtered));
 }
 
 export async function updateTemplate(id: string, updates: Partial<PaymentTemplate>): Promise<void> {
@@ -45,5 +45,5 @@ export async function updateTemplate(id: string, updates: Partial<PaymentTemplat
   const index = templates.findIndex((t) => t.id === id);
   if (index === -1) return;
   templates[index] = { ...templates[index], ...updates };
-  await AsyncStorage.setItem(TEMPLATES_KEY, JSON.stringify(templates));
+  await setItem(TEMPLATES_KEY, JSON.stringify(templates));
 }
