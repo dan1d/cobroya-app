@@ -10,22 +10,29 @@ class MercadoPagoAPI {
   }
 
   private async request<T>(path: string, options?: RequestInit): Promise<T> {
-    const res = await fetch(`${BASE_URL}${path}`, {
-      ...options,
-      headers: {
-        Authorization: `Bearer ${this.token}`,
-        "Content-Type": "application/json",
-        ...options?.headers,
-      },
-      signal: AbortSignal.timeout(30000),
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-    if (!res.ok) {
-      const body = await res.text().catch(() => "");
-      throw new MercadoPagoError(res.status, body);
+    try {
+      const res = await fetch(`${BASE_URL}${path}`, {
+        ...options,
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+          "Content-Type": "application/json",
+          ...options?.headers,
+        },
+        signal: controller.signal,
+      });
+
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        throw new MercadoPagoError(res.status, body);
+      }
+
+      return res.json();
+    } finally {
+      clearTimeout(timeoutId);
     }
-
-    return res.json();
   }
 
   async getMerchantInfo(): Promise<MerchantInfo> {

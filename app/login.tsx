@@ -57,10 +57,12 @@ export default function LoginScreen() {
       await registerForPushNotifications();
       router.replace("/(tabs)");
     } catch (err) {
+      console.error("[login] Error:", err);
       if (err instanceof MercadoPagoError && err.isUnauthorized) {
         setError("Token invalido. Verifica que sea correcto.");
       } else {
-        setError("No se pudo conectar. Intenta de nuevo.");
+        const msg = err instanceof Error ? err.message : String(err);
+        setError(`No se pudo conectar: ${msg}`);
       }
     } finally {
       setLoading(false);
